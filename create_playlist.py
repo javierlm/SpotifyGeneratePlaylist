@@ -142,7 +142,9 @@ class CreatePlaylist:
         )
 
         # check for valid response status
-        if response.status_code != 200:
+        if response.status_code == 400:
+            print("Song cannot be found on Spotify")
+        elif response.status_code != 201:
             raise ResponseException(response.status_code)
 
         response_json = response.json()
