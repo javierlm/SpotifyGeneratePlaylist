@@ -1,6 +1,10 @@
 import json
 import os
 
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client.file import Storage
+from oauth2client.tools import run_flow
+
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
@@ -27,10 +31,16 @@ class CreatePlaylist:
         client_secrets_file = "client_secret.json"
 
         # Get credentials and create an API client
-        scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
-        flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-            client_secrets_file, scopes)
-        credentials = flow.run_console()
+        MISSING_CLIENT_SECRETS_MESSAGE = """WARNING: Please configure OAuth 2.0"""
+        flow = flow_from_clientsecrets(client_secrets_file,
+            scope=["https://www.googleapis.com/auth/youtube.readonly"],
+            message=MISSING_CLIENT_SECRETS_MESSAGE)
+
+        storage = Storage("%s-oauth2.json" % os.sys.argv[0])
+        credentials = storage.get()
+
+        if credentials is None or credentials.invalid:
+            credentials = run_flow(flow, storage)
 
         # from the Youtube DATA API
         youtube_client = googleapiclient.discovery.build(

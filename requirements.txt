@@ -1,3 +1,4 @@
+oauth2client
 google-auth-oauthlib==0.4.1
 google-api-python-client==1.8.2
 youtube_dl
