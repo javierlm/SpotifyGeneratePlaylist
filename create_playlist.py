@@ -69,16 +69,16 @@ class CreatePlaylist:
             artist = video["artist"]
 
             if song_name is not None and artist is not None:
-                # save all important info and skip any missing song and artist
-                self.all_song_info[video_title] = {
-                    "youtube_url": youtube_url,
-                    "song_name": song_name,
-                    "artist": artist,
-
-                    # add the uri, easy to get song to put into playlist
-                    "spotify_uri": self.get_spotify_uri(song_name, artist)
-
-                }
+                tempSpotifyUri = self.get_spotify_uri(song_name, artist)
+                if tempSpotifyUri is not "":
+                    # save all important info and skip any missing song and artist
+                    self.all_song_info[video_title] = {
+                        "youtube_url": youtube_url,
+                        "song_name": song_name,
+                        "artist": artist,
+                        # add the uri, easy to get song to put into playlist
+                        "spotify_uri": tempSpotifyUri
+                    }
 
     def create_playlist(self):
         """Create A New Playlist"""
@@ -137,8 +137,12 @@ class CreatePlaylist:
         response_json = response.json()
         songs = response_json["tracks"]["items"]
 
-        # only use the first song
-        uri = songs[0]["uri"]
+        # Only use the first song, if the list contains elements
+        try:
+            uri = songs[0]["uri"]
+        except Exception:
+            uri = ""
+            print("No URIs found for this result")
 
         return uri
 
