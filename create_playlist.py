@@ -75,7 +75,7 @@ class CreatePlaylist:
         request_body = json.dumps({
             "name": "Youtube Liked Vids",
             "description": "All Liked Youtube Videos",
-            "public": True
+            "public": False
         })
 
         query = "https://api.spotify.com/v1/users/{}/playlists".format(
