@@ -56,9 +56,28 @@ class CreatePlaylist:
         )
         response = request.execute()
 
+        # Read cache file and check if the cached value is the most recent. If that's not the case, the file will be updated with the new value
+        if not os.path.isfile("cache.txt"):
+            open("cache.txt","w+").close()
+
+        cache_file = open("cache.txt","r+")
+        cached_recent_liked_video = cache_file.read()
+        most_recent_liked_video = response["items"][0]['id']
+
+        if(cached_recent_liked_video == most_recent_liked_video):
+            return
+        else:
+            cache_file.truncate(0)
+            cache_file.write(most_recent_liked_video)
+        cache_file.close()
+
         # collect each video and get important information
         for item in response["items"]:
             video_title = item["snippet"]["title"]
+
+            if item["id"] == cached_recent_liked_video:
+                break
+
             youtube_url = "https://www.youtube.com/watch?v={}".format(
                 item["id"])
 
