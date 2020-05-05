@@ -78,6 +78,24 @@ class CreatePlaylist:
             "public": False
         })
 
+        #Retrieves all of the playlists of the user and searches for the correct one
+        get_playlists_query = "https://api.spotify.com/v1/users/{}/playlists".format(
+            spotify_user_id)
+        
+        response_playlists_query = requests.get(
+            get_playlists_query,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(spotify_token)
+            }
+        )
+        playlists_response_json = response_playlists_query.json()
+
+        for item in playlists_response_json['items']:
+            if item['name'] == "Youtube Liked Vids":
+                return item['id']
+
+        #If the playlist is not found, we need to create it
         query = "https://api.spotify.com/v1/users/{}/playlists".format(
             spotify_user_id)
         response = requests.post(
