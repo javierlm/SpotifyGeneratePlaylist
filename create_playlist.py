@@ -11,14 +11,27 @@ import googleapiclient.errors
 import requests
 import youtube_dl
 
-from exceptions import ResponseException
-from secrets import spotify_token, spotify_user_id
+import spotipy
+import spotipy.util as util
 
+from exceptions import ResponseException
+from secrets import spotify_user_id, spotify_client_id, spotify_client_secret
+
+appScope = 'playlist-read-private playlist-modify-private'
+
+def getAccessToken():
+    token = util.prompt_for_user_token(spotify_user_id,
+                                         appScope, 
+                                         client_id=spotify_client_id, 
+                                         client_secret=spotify_client_secret,
+                                         redirect_uri='http://127.0.0.1:8080/callback/')
+    return token
 
 class CreatePlaylist:
     def __init__(self):
         self.youtube_client = self.get_youtube_client()
         self.all_song_info = {}
+        self.spotify_token = getAccessToken()
 
     def get_youtube_client(self):
         """ Log Into Youtube, Copied from Youtube Data API """
@@ -115,7 +128,7 @@ class CreatePlaylist:
             get_playlists_query,
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer {}".format(spotify_token)
+                "Authorization": "Bearer {}".format(self.spotify_token)
             }
         )
         playlists_response_json = response_playlists_query.json()
@@ -123,6 +136,10 @@ class CreatePlaylist:
         for item in playlists_response_json['items']:
             if item['name'] == "Youtube Liked Vids":
                 return item['id']
+
+        #Se debe de truncar el fichero de nuevo
+        if os._exists("cache.txt"):
+            os.remove("cache.txt")
 
         #If the playlist is not found, we need to create it
         query = "https://api.spotify.com/v1/users/{}/playlists".format(
@@ -132,7 +149,7 @@ class CreatePlaylist:
             data=request_body,
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer {}".format(spotify_token)
+                "Authorization": "Bearer {}".format(self.spotify_token)
             }
         )
         response_json = response.json()
@@ -150,7 +167,7 @@ class CreatePlaylist:
             query,
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer {}".format(spotify_token)
+                "Authorization": "Bearer {}".format(self.spotify_token)
             }
         )
         response_json = response.json()
@@ -167,15 +184,16 @@ class CreatePlaylist:
 
     def add_song_to_playlist(self):
         """Add all liked songs into a new Spotify playlist"""
+
+        # create a new playlist
+        playlist_id = self.create_playlist()
+
         # populate dictionary with our liked songs
         self.get_liked_videos()
 
         # collect all of uri
         uris = [info["spotify_uri"]
                 for song, info in self.all_song_info.items()]
-
-        # create a new playlist
-        playlist_id = self.create_playlist()
 
         # add all songs into new playlist
         request_data = json.dumps(uris)
@@ -188,7 +206,7 @@ class CreatePlaylist:
             data=request_data,
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer {}".format(spotify_token)
+                "Authorization": "Bearer {}".format(self.spotify_token)
             }
         )
 
