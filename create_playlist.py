@@ -76,13 +76,14 @@ class CreatePlaylist:
         cache_file = open("cache.txt","r+")
         cached_recent_liked_video = cache_file.read()
         most_recent_liked_video = response["items"][0]['id']
+        cache_file.close()
 
         if(cached_recent_liked_video == most_recent_liked_video):
             return
         else:
-            cache_file.truncate(0)
+            cache_file = open("cache.txt","w+")
             cache_file.write(most_recent_liked_video)
-        cache_file.close()
+            cache_file.close()
 
         # collect each video and get important information
         for item in response["items"]:
