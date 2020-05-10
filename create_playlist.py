@@ -29,6 +29,7 @@ def getAccessToken():
 
 class CreatePlaylist:
     def __init__(self):
+        self.maxResults = 5
         self.youtube_client = self.get_youtube_client()
         self.all_song_info = {}
         self.spotify_token = getAccessToken()
@@ -65,7 +66,8 @@ class CreatePlaylist:
         """Grab Our Liked Videos & Create A Dictionary Of Important Song Information"""
         request = self.youtube_client.videos().list(
             part="snippet,contentDetails,statistics",
-            myRating="like"
+            myRating="like",
+            maxResults=self.maxResults
         )
         response = request.execute()
 
